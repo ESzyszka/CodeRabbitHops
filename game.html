@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rabbit Jump Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #f7f7f7;
+            font-family: Arial, sans-serif;
+        }
+        
+        #gameContainer {
+            text-align: center;
+        }
+        
+        #gameCanvas {
+            border: 2px solid #535353;
+            background: #fff;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        #score {
+            font-size: 24px;
+            margin: 20px 0;
+            color: #535353;
+        }
+        
+        #instructions {
+            color: #757575;
+            margin-top: 10px;
+        }
+        
+        .game-over {
+            color: #d32f2f;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="score">Score: 0</div>
+        <canvas id="gameCanvas" width="800" height="200"></canvas>
+        <div id="instructions">Press SPACE or click to jump!</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const instructionsElement = document.getElementById('instructions');
+
+        // Game variables
+        let gameRunning = false;
+        let gameOver = false;
+        let score = 0;
+        let frameCount = 0;
+
+        // Rabbit
+        const rabbit = {
+            x: 50,
+            y: 150,
+            width: 30,
+            height: 40,
+            velocityY: 0,
+            gravity: 0.6,
+            jumpPower: -12,
+            isJumping: false
+        };
+
+        // Obstacles
+        let obstacles = [];
+        const obstacleWidth = 20;
+        const obstacleHeight = 40;
+        const obstacleSpeed = 5;
+        let obstacleSpawnTimer = 0;
+        let obstacleSpawnInterval = 90;
+
+        // Ground
+        const groundY = 190;
+
+        // Draw rabbit
+        function drawRabbit() {
+            ctx.fillStyle = '#8B4513';
+            // Body
+            ctx.fillRect(rabbit.x, rabbit.y, rabbit.width, rabbit.height);
+            
+            // Ears
+            ctx.fillStyle = '#A0522D';
+            ctx.fillRect(rabbit.x + 5, rabbit.y - 15, 8, 15);
+            ctx.fillRect(rabbit.x + 17, rabbit.y - 15, 8, 15);
+            
+            // Eye
+            ctx.fillStyle = '#000';
+            ctx.fillRect(rabbit.x + 20, rabbit.y + 10, 3, 3);
+            
+            // Tail
+            ctx.fillStyle = '#D2B48C';
+            ctx.beginPath();
+            ctx.arc(rabbit.x - 5, rabbit.y + 30, 5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Draw obstacle (carrot)
+        function drawObstacle(obstacle) {
+            ctx.fillStyle = '#FF6B35';
+            ctx.beginPath();
+            ctx.moveTo(obstacle.x + obstacleWidth / 2, obstacle.y);
+            ctx.lineTo(obstacle.x, obstacle.y + obstacleHeight);
+            ctx.lineTo(obstacle.x + obstacleWidth, obstacle.y + obstacleHeight);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Green top
+            ctx.fillStyle = '#4CAF50';
+            ctx.fillRect(obstacle.x + obstacleWidth / 2 - 3, obstacle.y - 5, 6, 8);
+        }
+
+        // Draw ground
+        function drawGround() {
+            ctx.strokeStyle = '#535353';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, groundY);
+            ctx.lineTo(canvas.width, groundY);
+            ctx.stroke();
+        }
+
+        // Update rabbit
+        function updateRabbit() {
+            rabbit.velocityY += rabbit.gravity;
+            rabbit.y += rabbit.velocityY;
+
+            if (rabbit.y >= 150) {
+                rabbit.y = 150;
+                rabbit.velocityY = 0;
+                rabbit.isJumping = false;
+            }
+        }
+
+        // Jump
+        function jump() {
+            if (!rabbit.isJumping && !gameOver) {
+                if (!gameRunning) {
+                    gameRunning = true;
+                }
+                rabbit.velocityY = rabbit.jumpPower;
+                rabbit.isJumping = true;
+            }
+        }
+
+        // Update obstacles
+        function updateObstacles() {
+            obstacleSpawnTimer++;
+            
+            if (obstacleSpawnTimer > obstacleSpawnInterval) {
+                obstacles.push({
+                    x: canvas.width,
+                    y: groundY - obstacleHeight
+                });
+                obstacleSpawnTimer = 0;
+                obstacleSpawnInterval = Math.max(50, 90 - Math.floor(score / 100) * 5);
+            }
+
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                obstacles[i].x -= obstacleSpeed;
+
+                if (obstacles[i].x + obstacleWidth < 0) {
+                    obstacles.splice(i, 1);
+                    score += 10;
+                }
+            }
+        }
+
+        // Check collision
+        function checkCollision() {
+            for (let obstacle of obstacles) {
+                if (rabbit.x < obstacle.x + obstacleWidth &&
+                    rabbit.x + rabbit.width > obstacle.x &&
+                    rabbit.y < obstacle.y + obstacleHeight &&
+                    rabbit.y + rabbit.height > obstacle.y) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Reset game
+        function resetGame() {
+            gameRunning = false;
+            gameOver = false;
+            score = 0;
+            frameCount = 0;
+            obstacles = [];
+            obstacleSpawnTimer = 0;
+            obstacleSpawnInterval = 90;
+            rabbit.y = 150;
+            rabbit.velocityY = 0;
+            rabbit.isJumping = false;
+            instructionsElement.textContent = 'Press SPACE or click to jump!';
+            instructionsElement.classList.remove('game-over');
+        }
+
+        // Game loop
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawGround();
+            drawRabbit();
+
+            if (gameRunning && !gameOver) {
+                updateRabbit();
+                updateObstacles();
+                frameCount++;
+
+                if (checkCollision()) {
+                    gameOver = true;
+                    gameRunning = false;
+                    instructionsElement.textContent = 'Game Over! Press SPACE or click to restart';
+                    instructionsElement.classList.add('game-over');
+                }
+            }
+
+            for (let obstacle of obstacles) {
+                drawObstacle(obstacle);
+            }
+
+            scoreElement.textContent = 'Score: ' + score;
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Event listeners
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (gameOver) {
+                    resetGame();
+                } else {
+                    jump();
+                }
+            }
+        });
+
+        canvas.addEventListener('click', () => {
+            if (gameOver) {
+                resetGame();
+            } else {
+                jump();
+            }
+        });
+
+        // Start game loop
+        gameLoop();
+    </script>
+</body>
+</html>
