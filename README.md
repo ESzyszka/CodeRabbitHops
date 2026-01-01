@@ -1,6 +1,6 @@
 # CodeRabbitHops 🐰
 
-A lightweight browser-based jumping game inspired by Chrome's T-Rex dinosaur game. Help the rabbit jump over carrots and rack up points!
+A lightweight browser-based jumping game inspired by Chrome's T-Rex dinosaur game. Help the rabbit jump over carrots and rack up points.
 
 ## 🕹️ How to Play
 
