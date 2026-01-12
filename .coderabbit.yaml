@@ -1,0 +1,8 @@
+# .coderabbit.yaml
+high_level_summary_instructions: |
+  For every PR, prioritize security analysis:
+  - Flag any changes to authentication, authorization, or data validation
+  - Check for OWASP Top 10 vulnerabilities relevant to our Node.js/PostgreSQL stack
+  - Verify sensitive data (PII, API keys) isn't logged or exposed in error messages
+  - Highlight any new third-party dependencies and check for known CVEs
+  - Format security findings with severity (CRITICAL/HIGH/MEDIUM/LOW)
