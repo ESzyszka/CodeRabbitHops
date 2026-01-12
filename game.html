@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rabbit Jump Game - Login Required</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* Auth Screen Styles */
+        .auth-container {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 400px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .auth-header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .auth-header .game-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .auth-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .auth-form {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 6px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+            animation: shake 0.3s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .auth-switch {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .auth-switch a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .auth-switch a:hover {
+            text-decoration: underline;
+        }
+
+        /* Game Screen Styles */
+        .game-wrapper {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .welcome-text {
+            color: #333;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .user-email {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .high-score {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .logout-btn {
+            padding: 10px 20px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #c0392b;
+        }
+
+        #gameContainer {
+            text-align: center;
+        }
+
+        #score {
+            font-size: 24px;
+            margin: 20px 0;
+            color: #535353;
+            font-weight: bold;
+        }
+
+        #gameCanvas {
+            border: 2px solid #535353;
+            background: #fff;
+            display: block;
+            margin: 0 auto;
+            border-radius: 8px;
+        }
+
+        #instructions {
+            color: #757575;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .game-over {
+            color: #d32f2f;
+            font-weight: bold;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Loading indicator */
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Authentication Screen -->
+    <div id="authContainer" class="auth-container">
+        <div class="auth-header">
+            <div class="game-icon">🐰</div>
+            <h1>Rabbit Jump</h1>
+            <p id="authTitle">Login to play</p>
+        </div>
+
+        <!-- Login Form -->
+        <form id="loginForm" class="auth-form">
+            <div class="form-group">
+                <label for="loginEmail">Email</label>
+                <input type="email" id="loginEmail" placeholder="Enter your email" required>
+                <div class="error-message" id="loginEmailError"></div>
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" placeholder="Enter your password" required>
+                <div class="error-message" id="loginPasswordError"></div>
+            </div>
+            <button type="submit" class="btn-primary">Login</button>
+            <div class="auth-switch">
+                Don't have an account? <a id="showSignup">Sign up</a>
+            </div>
+        </form>
+
+        <!-- Signup Form -->
+        <form id="signupForm" class="auth-form hidden">
+            <div class="form-group">
+                <label for="signupName">Name</label>
+                <input type="text" id="signupName" placeholder="Enter your name" required>
+                <div class="error-message" id="signupNameError"></div>
+            </div>
+            <div class="form-group">
+                <label for="signupEmail">Email</label>
+                <input type="email" id="signupEmail" placeholder="Enter your email" required>
+                <div class="error-message" id="signupEmailError"></div>
+            </div>
+            <div class="form-group">
+                <label for="signupPassword">Password</label>
+                <input type="password" id="signupPassword" placeholder="Create a password (min 6 characters)" required>
+                <div class="error-message" id="signupPasswordError"></div>
+            </div>
+            <div class="form-group">
+                <label for="signupPasswordConfirm">Confirm Password</label>
+                <input type="password" id="signupPasswordConfirm" placeholder="Confirm your password" required>
+                <div class="error-message" id="signupPasswordConfirmError"></div>
+            </div>
+            <button type="submit" class="btn-primary">Sign Up</button>
+            <div class="auth-switch">
+                Already have an account? <a id="showLogin">Login</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameWrapper" class="game-wrapper">
+        <div class="game-header">
+            <div class="user-info">
+                <div class="welcome-text">Welcome, <span id="userName"></span>!</div>
+                <div class="user-email" id="userEmail"></div>
+                <div class="high-score">High Score: <span id="highScore">0</span></div>
+            </div>
+            <button id="logoutBtn" class="logout-btn">Logout</button>
+        </div>
+
+        <div id="gameContainer">
+            <div id="score">Score: 0</div>
+            <canvas id="gameCanvas" width="800" height="200"></canvas>
+            <div id="instructions">Press SPACE or click to jump!</div>
+        </div>
+    </div>
+
+    <script>
+        // ===== AUTHENTICATION SYSTEM =====
+        const AUTH_STORAGE_KEY = 'rabbitGameUsers';
+        const SESSION_STORAGE_KEY = 'rabbitGameSession';
+
+        class AuthSystem {
+            constructor() {
+                this.users = this.loadUsers();
+                this.currentUser = this.loadSession();
+            }
+
+            loadUsers() {
+                const stored = localStorage.getItem(AUTH_STORAGE_KEY);
+                return stored ? JSON.parse(stored) : [];
+            }
+
+            saveUsers() {
+                localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(this.users));
+            }
+
+            loadSession() {
+                const stored = sessionStorage.getItem(SESSION_STORAGE_KEY);
+                return stored ? JSON.parse(stored) : null;
+            }
+
+            saveSession(user) {
+                sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(user));
+                this.currentUser = user;
+            }
+
+            clearSession() {
+                sessionStorage.removeItem(SESSION_STORAGE_KEY);
+                this.currentUser = null;
+            }
+
+            validateEmail(email) {
+                // RFC 5322 compliant email validation
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return emailRegex.test(email);
+            }
+
+            signup(name, email, password, passwordConfirm) {
+                // Validation
+                if (!name.trim()) {
+                    return { success: false, field: 'name', message: 'Name is required' };
+                }
+
+                if (!this.validateEmail(email)) {
+                    return { success: false, field: 'email', message: 'Invalid email format' };
+                }
+
+                if (this.users.find(u => u.email === email)) {
+                    return { success: false, field: 'email', message: 'Email already registered' };
+                }
+
+                if (password.length < 6) {
+                    return { success: false, field: 'password', message: 'Password must be at least 6 characters' };
+                }
+
+                if (password !== passwordConfirm) {
+                    return { success: false, field: 'passwordConfirm', message: 'Passwords do not match' };
+                }
+
+                // Create user
+                const user = {
+                    id: Date.now().toString(),
+                    name: name.trim(),
+                    email: email.toLowerCase(),
+                    password: password, // In production, this should be hashed!
+                    highScore: 0,
+                    createdAt: new Date().toISOString()
+                };
+
+                this.users.push(user);
+                this.saveUsers();
+
+                return { success: true, user };
+            }
+
+            login(email, password) {
+                if (!this.validateEmail(email)) {
+                    return { success: false, field: 'email', message: 'Invalid email format' };
+                }
+
+                const user = this.users.find(u => u.email === email.toLowerCase());
+
+                if (!user) {
+                    return { success: false, field: 'email', message: 'Email not found' };
+                }
+
+                if (user.password !== password) {
+                    return { success: false, field: 'password', message: 'Incorrect password' };
+                }
+
+                return { success: true, user };
+            }
+
+            updateHighScore(score) {
+                if (!this.currentUser) return;
+
+                const user = this.users.find(u => u.id === this.currentUser.id);
+                if (user && score > user.highScore) {
+                    user.highScore = score;
+                    this.currentUser.highScore = score;
+                    this.saveUsers();
+                    this.saveSession(this.currentUser);
+                    return true;
+                }
+                return false;
+            }
+
+            isLoggedIn() {
+                return this.currentUser !== null;
+            }
+        }
+
+        // Initialize auth system
+        const auth = new AuthSystem();
+
+        // ===== DOM ELEMENTS =====
+        const authContainer = document.getElementById('authContainer');
+        const gameWrapper = document.getElementById('gameWrapper');
+        const loginForm = document.getElementById('loginForm');
+        const signupForm = document.getElementById('signupForm');
+        const showSignupBtn = document.getElementById('showSignup');
+        const showLoginBtn = document.getElementById('showLogin');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const authTitle = document.getElementById('authTitle');
+
+        // ===== AUTH UI HANDLERS =====
+        function showError(fieldId, message) {
+            const errorElement = document.getElementById(fieldId + 'Error');
+            errorElement.textContent = message;
+            errorElement.classList.add('show');
+            
+            setTimeout(() => {
+                errorElement.classList.remove('show');
+            }, 3000);
+        }
+
+        function clearErrors() {
+            document.querySelectorAll('.error-message').forEach(el => {
+                el.classList.remove('show');
+                el.textContent = '';
+            });
+        }
+
+        showSignupBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            loginForm.classList.add('hidden');
+            signupForm.classList.remove('hidden');
+            authTitle.textContent = 'Create an account';
+            clearErrors();
+        });
+
+        showLoginBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            signupForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+            authTitle.textContent = 'Login to play';
+            clearErrors();
+        });
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            clearErrors();
+
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            const result = auth.login(email, password);
+
+            if (result.success) {
+                auth.saveSession(result.user);
+                showGameScreen();
+            } else {
+                showError('login' + result.field.charAt(0).toUpperCase() + result.field.slice(1), result.message);
+            }
+        });
+
+        signupForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            clearErrors();
+
+            const name = document.getElementById('signupName').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            const passwordConfirm = document.getElementById('signupPasswordConfirm').value;
+
+            const result = auth.signup(name, email, password, passwordConfirm);
+
+            if (result.success) {
+                auth.saveSession(result.user);
+                showGameScreen();
+            } else {
+                showError('signup' + result.field.charAt(0).toUpperCase() + result.field.slice(1), result.message);
+            }
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            auth.clearSession();
+            showAuthScreen();
+            resetGame();
+        });
+
+        function showAuthScreen() {
+            authContainer.style.display = 'block';
+            gameWrapper.style.display = 'none';
+            loginForm.reset();
+            signupForm.reset();
+            clearErrors();
+        }
+
+        function showGameScreen() {
+            authContainer.style.display = 'none';
+            gameWrapper.style.display = 'block';
+            
+            document.getElementById('userName').textContent = auth.currentUser.name;
+            document.getElementById('userEmail').textContent = auth.currentUser.email;
+            document.getElementById('highScore').textContent = auth.currentUser.highScore;
+        }
+
+        // Check if user is already logged in
+        if (auth.isLoggedIn()) {
+            showGameScreen();
+        } else {
+            showAuthScreen();
+        }
+
+        // ===== GAME CODE =====
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const instructionsElement = document.getElementById('instructions');
+        const highScoreElement = document.getElementById('highScore');
+
+        // Game variables
+        let gameRunning = false;
+        let gameOver = false;
+        let score = 0;
+        let frameCount = 0;
+
+        // Rabbit
+        const rabbit = {
+            x: 50,
+            y: 150,
+            width: 30,
+            height: 40,
+            velocityY: 0,
+            gravity: 0.6,
+            jumpPower: -12,
+            isJumping: false
+        };
+
+        // Obstacles
+        let obstacles = [];
+        const obstacleWidth = 20;
+        const obstacleHeight = 40;
+        const obstacleSpeed = 5;
+        let obstacleSpawnTimer = 0;
+        let obstacleSpawnInterval = 90;
+
+        // Ground
+        const groundY = 190;
+
+        // Draw rabbit
+        function drawRabbit() {
+            ctx.fillStyle = '#8B4513';
+            // Body
+            ctx.fillRect(rabbit.x, rabbit.y, rabbit.width, rabbit.height);
+            
+            // Ears
+            ctx.fillStyle = '#A0522D';
+            ctx.fillRect(rabbit.x + 5, rabbit.y - 15, 8, 15);
+            ctx.fillRect(rabbit.x + 17, rabbit.y - 15, 8, 15);
+            
+            // Eye
+            ctx.fillStyle = '#000';
+            ctx.fillRect(rabbit.x + 20, rabbit.y + 10, 3, 3);
+            
+            // Tail
+            ctx.fillStyle = '#D2B48C';
+            ctx.beginPath();
+            ctx.arc(rabbit.x - 5, rabbit.y + 30, 5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Draw obstacle (carrot)
+        function drawObstacle(obstacle) {
+            ctx.fillStyle = '#FF6B35';
+            ctx.beginPath();
+            ctx.moveTo(obstacle.x + obstacleWidth / 2, obstacle.y);
+            ctx.lineTo(obstacle.x, obstacle.y + obstacleHeight);
+            ctx.lineTo(obstacle.x + obstacleWidth, obstacle.y + obstacleHeight);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Green top
+            ctx.fillStyle = '#4CAF50';
+            ctx.fillRect(obstacle.x + obstacleWidth / 2 - 3, obstacle.y - 5, 6, 8);
+        }
+
+        // Draw ground
+        function drawGround() {
+            ctx.strokeStyle = '#535353';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, groundY);
+            ctx.lineTo(canvas.width, groundY);
+            ctx.stroke();
+        }
+
+        // Update rabbit
+        function updateRabbit() {
+            rabbit.velocityY += rabbit.gravity;
+            rabbit.y += rabbit.velocityY;
+
+            if (rabbit.y >= 150) {
+                rabbit.y = 150;
+                rabbit.velocityY = 0;
+                rabbit.isJumping = false;
+            }
+        }
+
+        // Jump
+        function jump() {
+            if (!rabbit.isJumping && !gameOver) {
+                if (!gameRunning) {
+                    gameRunning = true;
+                }
+                rabbit.velocityY = rabbit.jumpPower;
+                rabbit.isJumping = true;
+            }
+        }
+
+        // Update obstacles
+        function updateObstacles() {
+            obstacleSpawnTimer++;
+            
+            if (obstacleSpawnTimer > obstacleSpawnInterval) {
+                obstacles.push({
+                    x: canvas.width,
+                    y: groundY - obstacleHeight
+                });
+                obstacleSpawnTimer = 0;
+                obstacleSpawnInterval = Math.max(50, 90 - Math.floor(score / 100) * 5);
+            }
+
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                obstacles[i].x -= obstacleSpeed;
+
+                if (obstacles[i].x + obstacleWidth < 0) {
+                    obstacles.splice(i, 1);
+                    score += 10;
+                }
+            }
+        }
+
+        // Check collision
+        function checkCollision() {
+            for (let obstacle of obstacles) {
+                if (rabbit.x < obstacle.x + obstacleWidth &&
+                    rabbit.x + rabbit.width > obstacle.x &&
+                    rabbit.y < obstacle.y + obstacleHeight &&
+                    rabbit.y + rabbit.height > obstacle.y) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Reset game
+        function resetGame() {
+            gameRunning = false;
+            gameOver = false;
+            score = 0;
+            frameCount = 0;
+            obstacles = [];
+            obstacleSpawnTimer = 0;
+            obstacleSpawnInterval = 90;
+            rabbit.y = 150;
+            rabbit.velocityY = 0;
+            rabbit.isJumping = false;
+            instructionsElement.textContent = 'Press SPACE or click to jump!';
+            instructionsElement.classList.remove('game-over');
+        }
+
+        // Game loop
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawGround();
+            drawRabbit();
+
+            if (gameRunning && !gameOver) {
+                updateRabbit();
+                updateObstacles();
+                frameCount++;
+
+                if (checkCollision()) {
+                    gameOver = true;
+                    gameRunning = false;
+                    instructionsElement.textContent = 'Game Over! Press SPACE or click to restart';
+                    instructionsElement.classList.add('game-over');
+                    
+                    // Update high score
+                    if (auth.updateHighScore(score)) {
+                        highScoreElement.textContent = score;
+                    }
+                }
+            }
+
+            for (let obstacle of obstacles) {
+                drawObstacle(obstacle);
+            }
+
+            scoreElement.textContent = 'Score: ' + score;
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Event listeners
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (gameWrapper.style.display === 'block') {
+                    if (gameOver) {
+                        resetGame();
+                    } else {
+                        jump();
+                    }
+                }
+            }
+        });
+
+        canvas.addEventListener('click', () => {
+            if (gameOver) {
+                resetGame();
+            } else {
+                jump();
+            }
+        });
+
+        // Start game loop
+        gameLoop();
+    </script>
+</body>
+</html>
